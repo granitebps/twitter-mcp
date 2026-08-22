@@ -15,7 +15,50 @@ You do not need to clone this repository after the package is published. Configu
 npx -y @granitebps/twitter-mcp
 ```
 
-Rettiwt is selected when `TWITTER_MODE` is omitted:
+Rettiwt is selected when `TWITTER_MODE` is omitted. Every client configuration must provide a `RETTIWT_API_KEY` to the server process.
+
+The server uses stdio. Keep stdout reserved for MCP traffic.
+
+## Run from a cloned repository
+
+You can build and run the same stdio server directly from a local checkout:
+
+```bash
+git clone https://github.com/granitebps/twitter-mcp.git
+cd twitter-mcp
+npm ci
+npm run build
+```
+
+Use `node` as the client command and the absolute path to `dist/cli.js` as its argument:
+
+```text
+node /absolute/path/to/twitter-mcp/dist/cli.js
+```
+
+Run `npm run build` again after changing the source. Do not point an MCP client at `src` or use `npm run dev` as its stdio command because build output can interfere with MCP traffic.
+
+## Client configuration
+
+The examples below use the published package first and show the local checkout alternative immediately after it. Replace `/absolute/path/to/twitter-mcp` with the actual cloned repository path. Replace `your_key_here` with your Rettiwt key and keep that configuration out of version control.
+
+### Claude
+
+For Claude Code, add the published package with:
+
+```bash
+claude mcp add twitter --env RETTIWT_API_KEY=your_key_here -- npx -y @granitebps/twitter-mcp
+```
+
+To use a local checkout instead:
+
+```bash
+claude mcp add twitter --env RETTIWT_API_KEY=your_key_here -- node /absolute/path/to/twitter-mcp/dist/cli.js
+```
+
+Claude Code stores these commands in its local scope by default. Add `--scope user` before `twitter` if you want the server available across projects.
+
+For Claude Desktop, add the equivalent entry to `claude_desktop_config.json`, then restart the app:
 
 ```json
 {
@@ -31,27 +74,77 @@ Rettiwt is selected when `TWITTER_MODE` is omitted:
 }
 ```
 
-The server uses stdio. Keep stdout reserved for MCP traffic.
-
-## Client configuration
-
-### Claude Desktop
-
-Add the quick-start configuration above to your Claude Desktop configuration file, then restart Claude Desktop.
-
-### Cursor
-
-Add the same `mcpServers` object to `.cursor/mcp.json` in your project or to Cursor's global MCP configuration.
-
-### VS Code
-
-Add this to your MCP configuration:
+For a local checkout, change only the launch fields:
 
 ```json
 {
-  "servers": {
+  "command": "node",
+  "args": ["/absolute/path/to/twitter-mcp/dist/cli.js"]
+}
+```
+
+### Codex
+
+Add the published package to `~/.codex/config.toml`, or to `.codex/config.toml` in a trusted project:
+
+```toml
+[mcp_servers.twitter]
+command = "npx"
+args = ["-y", "@granitebps/twitter-mcp"]
+
+[mcp_servers.twitter.env]
+RETTIWT_API_KEY = "your_key_here"
+```
+
+For a local checkout, use:
+
+```toml
+[mcp_servers.twitter]
+command = "node"
+args = ["/absolute/path/to/twitter-mcp/dist/cli.js"]
+
+[mcp_servers.twitter.env]
+RETTIWT_API_KEY = "your_key_here"
+```
+
+Restart Codex after changing its configuration. The Codex CLI, IDE extension, and desktop app share this configuration on the same host.
+
+### OpenCode
+
+Add the published package to `opencode.json` or `opencode.jsonc`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
     "twitter": {
-      "type": "stdio",
+      "type": "local",
+      "command": ["npx", "-y", "@granitebps/twitter-mcp"],
+      "enabled": true,
+      "environment": {
+        "RETTIWT_API_KEY": "your_key_here"
+      }
+    }
+  }
+}
+```
+
+For a local checkout, change only the command array:
+
+```json
+{
+  "command": ["node", "/absolute/path/to/twitter-mcp/dist/cli.js"]
+}
+```
+
+### Cursor
+
+Add the published package to `.cursor/mcp.json` in a project, or to `~/.cursor/mcp.json` for global use:
+
+```json
+{
+  "mcpServers": {
+    "twitter": {
       "command": "npx",
       "args": ["-y", "@granitebps/twitter-mcp"],
       "env": {
@@ -62,9 +155,14 @@ Add this to your MCP configuration:
 }
 ```
 
-### Other stdio clients
+For a local checkout, change only the launch fields:
 
-Use `npx` as the command, `-y @granitebps/twitter-mcp` as the arguments, and provide credentials through the child process environment.
+```json
+{
+  "command": "node",
+  "args": ["/absolute/path/to/twitter-mcp/dist/cli.js"]
+}
+```
 
 ## Providers
 
