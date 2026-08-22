@@ -1,148 +1,29 @@
-# Twitter/X MCP Server
+# Twitter/X MCP
 
-An MCP (Model Context Protocol) server that gives AI agents (GitHub Copilot, Claude) access to Twitter/X data: tweets, replies, user profiles, and search.
+A read-only Model Context Protocol server for public X posts, replies, profiles, and search. Rettiwt is the default provider and does not require an official X developer plan. The official X API remains available as an optional mode.
 
-**Supports three modes — all free options included:**
+## Requirements
 
-| Mode | Cost | Credentials needed |
-|------|------|--------------------|
-| **`rettiwt`** | Free | None (guest) or browser cookies (full) |
-| **`scraper`** | Free | Regular Twitter login |
-| **`api`** | Paid (~$0.005/req) | Twitter Developer account |
+- Node.js 22.21.0 or a newer Node 22 release. Node 23 and later are not supported by the current Rettiwt release.
+- A `RETTIWT_API_KEY` for the default provider, or official X API credentials for API mode.
 
-## Tools
+## Quick start
 
-| Tool | Description | Notes |
-|------|-------------|-------|
-| `get_tweet` | Fetch a tweet by ID — full text, metrics (likes, RTs, replies, bookmarks, views) | All modes |
-| `get_tweet_replies` | Get replies to a tweet | Requires `RETTIWT_API_KEY` in rettiwt mode |
-| `get_user_profile` | Full profile: bio, follower counts, join date, verified status | All modes |
-| `search_tweets` | Search tweets by keyword, hashtag, or operators (`from:user`, `#tag`, `lang:en`) | Requires `RETTIWT_API_KEY` in rettiwt mode |
-
-## Quick Start
-
-### 1. Install & Build
+You do not need to clone this repository after the package is published. Configure your MCP client to run:
 
 ```bash
-git clone <your-repo-url>
-cd twitter-mcp
-npm install
-npm run build
+npx -y @granitebps/twitter-mcp
 ```
 
-### 2. Configure Credentials
-
-```bash
-cp .env.example .env
-# Edit .env for your chosen mode
-```
-
-### 3. Test with MCP Inspector
-
-```bash
-npx @modelcontextprotocol/inspector node dist/index.js
-```
-
----
-
-## Mode Setup
-
-### Rettiwt Mode (Recommended — free, no Twitter developer account)
-
-Uses [rettiwt-api](https://github.com/rishikant181/Rettiwt-API) which talks directly to Twitter's internal endpoints.
-
-**Guest mode** (no credentials) — `get_tweet` and `get_user_profile` only:
-```env
-TWITTER_MODE=rettiwt
-```
-
-**Full mode** (all 4 tools) — requires a one-time key extracted from your browser cookies:
-```env
-TWITTER_MODE=rettiwt
-RETTIWT_API_KEY=your_key_here
-```
-
-#### How to get `RETTIWT_API_KEY`
-
-1. Install the **X Auth Helper** browser extension (search "X Auth Helper" in Chrome Web Store)
-   - Official docs: https://rishikant181.github.io/Rettiwt-API/#authentication
-2. Open Twitter in **incognito mode** and log in
-3. Click the extension icon → **"Get Key"** → copy the value
-4. Paste it in `.env` as `RETTIWT_API_KEY`
-
-> The key is base64-encoded session cookies. It lasts ~5 years unless you log out of that incognito session. No Twitter developer account or paid plan needed.
-
----
-
-### Scraper Mode (free, uses your regular Twitter login)
-
-Uses [`@the-convocation/twitter-scraper`](https://github.com/the-convocation/twitter-scraper).
-
-```env
-TWITTER_MODE=scraper
-TWITTER_USERNAME=your_twitter_username
-TWITTER_PASSWORD=your_twitter_password
-TWITTER_EMAIL=your_email@example.com   # optional — needed if Twitter asks for email on login
-```
-
-> **Heads up:** Uses Twitter's internal web endpoints. May break temporarily if Twitter changes their frontend. For personal/low-volume use only — avoid aggressive polling to prevent account restrictions.
-
----
-
-### API Mode (official Twitter API v2 — paid)
-
-Uses the [official Twitter API v2](https://developer.twitter.com/en/docs) via [`twitter-api-v2`](https://github.com/PLhery/node-twitter-api-v2). Requires a Twitter Developer account.
-
-```env
-TWITTER_MODE=api
-TWITTER_BEARER_TOKEN=your_bearer_token
-# Or use full OAuth credentials instead:
-TWITTER_API_KEY=your_api_key
-TWITTER_API_SECRET=your_api_secret
-TWITTER_ACCESS_TOKEN=your_access_token
-TWITTER_ACCESS_SECRET=your_access_secret
-```
-
-Get credentials at: https://developer.x.com/en/portal/dashboard
-
----
-
-## Client Configuration
-
-### GitHub Copilot (VS Code)
-
-Add to your VS Code `settings.json`:
-
-```json
-{
-  "mcp": {
-    "servers": {
-      "twitter-mcp": {
-        "type": "stdio",
-        "command": "node",
-        "args": ["/absolute/path/to/twitter-mcp/dist/index.js"],
-        "env": {
-          "TWITTER_MODE": "rettiwt",
-          "RETTIWT_API_KEY": "your_key_here"
-        }
-      }
-    }
-  }
-}
-```
-
-### Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+Rettiwt is selected when `TWITTER_MODE` is omitted:
 
 ```json
 {
   "mcpServers": {
-    "twitter-mcp": {
-      "command": "node",
-      "args": ["/absolute/path/to/twitter-mcp/dist/index.js"],
+    "twitter": {
+      "command": "npx",
+      "args": ["-y", "@granitebps/twitter-mcp"],
       "env": {
-        "TWITTER_MODE": "rettiwt",
         "RETTIWT_API_KEY": "your_key_here"
       }
     }
@@ -150,85 +31,185 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-Swap the `env` block to use any mode. See [Mode Setup](#mode-setup) above.
+The server uses stdio. Keep stdout reserved for MCP traffic.
 
----
+## Client configuration
 
-## Choosing a Mode
+### Claude Desktop
 
-| | Rettiwt | Scraper | API |
-|---|---|---|---|
-| **Cost** | Free | Free | ~$0.005/request |
-| **Twitter dev account?** | No | No | Yes (paid) |
-| **Credentials** | None (guest) or browser cookies | Username + password | Bearer token / OAuth |
-| **Reliability** | Good — may need `npm update` if Twitter changes JS | Moderate — may break on Twitter UI changes | Very stable |
-| **All 4 tools?** | Yes, with `RETTIWT_API_KEY` | Yes | Yes |
-| **Best for** | Most users — easiest free full setup | Prefer password login over key extraction | Production / enterprise use |
+Add the quick-start configuration above to your Claude Desktop configuration file, then restart Claude Desktop.
 
----
+### Cursor
+
+Add the same `mcpServers` object to `.cursor/mcp.json` in your project or to Cursor's global MCP configuration.
+
+### VS Code
+
+Add this to your MCP configuration:
+
+```json
+{
+  "servers": {
+    "twitter": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@granitebps/twitter-mcp"],
+      "env": {
+        "RETTIWT_API_KEY": "your_key_here"
+      }
+    }
+  }
+}
+```
+
+### Other stdio clients
+
+Use `npx` as the command, `-y @granitebps/twitter-mcp` as the arguments, and provide credentials through the child process environment.
+
+## Providers
+
+| Mode         | Selection                          | Credentials                                | Cost and tradeoff                                                                                          |
+| ------------ | ---------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Rettiwt      | Default, or `TWITTER_MODE=rettiwt` | `RETTIWT_API_KEY`                          | No official X developer plan. Uses unofficial internal endpoints and may break or put the account at risk. |
+| Official API | `TWITTER_MODE=api`                 | Bearer token or complete OAuth credentials | Uses the supported X API. X controls access tiers and pricing.                                             |
+
+### Rettiwt setup
+
+Rettiwt requires authenticated user mode in this server. Guest mode is not supported.
+
+1. Generate an API key using the [Rettiwt authentication instructions](https://github.com/Rishikant181/Rettiwt-API#authentication).
+2. Store it as `RETTIWT_API_KEY` in the MCP client's environment.
+3. Start the server without `TWITTER_MODE`, or set `TWITTER_MODE=rettiwt` explicitly.
+
+A Rettiwt key is a base64 encoding of X session cookies and has the authority of that account. Treat it like a password. Do not commit it, paste it into issues, include it in logs, or pass it as a command-line argument. Use only a key for an account you own or are authorized to access.
+
+Rettiwt is unofficial. X's current [automation rules](https://help.x.com/en/rules-and-policies/x-automation) prohibit non-API website automation and warn that violations may lead to account suspension. Review the [X Rules](https://help.x.com/en/rules-and-policies/x-rules) before use. You are responsible for compliance and account risk.
+
+### Official X API setup
+
+Use a bearer token:
+
+```env
+TWITTER_MODE=api
+TWITTER_BEARER_TOKEN=your_bearer_token
+```
+
+Or provide the complete OAuth set:
+
+```env
+TWITTER_MODE=api
+TWITTER_API_KEY=your_api_key
+TWITTER_API_SECRET=your_api_secret
+TWITTER_ACCESS_TOKEN=your_access_token
+TWITTER_ACCESS_SECRET=your_access_secret
+```
+
+Create credentials in the [X Developer Portal](https://developer.x.com/en/portal/dashboard). X sets API access and pricing. Check its current terms before choosing this mode.
+
+## Configuration
+
+| Variable                     | Required        | Meaning                                                     |
+| ---------------------------- | --------------- | ----------------------------------------------------------- |
+| `TWITTER_MODE`               | No              | `rettiwt` by default, or `api`. Other values fail startup.  |
+| `RETTIWT_API_KEY`            | Rettiwt mode    | Authenticated Rettiwt session key.                          |
+| `TWITTER_BEARER_TOKEN`       | API mode option | Official API bearer token.                                  |
+| `TWITTER_API_KEY`            | OAuth option    | OAuth application key.                                      |
+| `TWITTER_API_SECRET`         | OAuth option    | OAuth application secret.                                   |
+| `TWITTER_ACCESS_TOKEN`       | OAuth option    | OAuth access token.                                         |
+| `TWITTER_ACCESS_SECRET`      | OAuth option    | OAuth access secret.                                        |
+| `TWITTER_REQUEST_TIMEOUT_MS` | No              | Request deadline from 1,000 to 120,000 ms. Default: 30,000. |
+
+Partial OAuth configuration fails startup. Credentials are read from the process environment and are never returned by `get_server_info`.
+
+## Tools
+
+| Tool                | Input                              | Result                                                                               |
+| ------------------- | ---------------------------------- | ------------------------------------------------------------------------------------ |
+| `get_tweet`         | `tweet_id`                         | One post. Accepts a numeric ID or an `x.com` or `twitter.com` status URL.            |
+| `get_tweet_replies` | `tweet_id`, optional `max_results` | Replies and available page metadata.                                                 |
+| `get_user_profile`  | `username`                         | One public profile. A leading `@` is accepted.                                       |
+| `search_tweets`     | `query`, optional `max_results`    | Matching posts and available page metadata. Search operators depend on the provider. |
+| `get_server_info`   | None                               | Version, active provider, tools, limits, and capabilities.                           |
+
+`max_results` defaults to 10 and accepts 1 through 100. Each successful call returns structured MCP content and JSON text for older clients. The collection tools keep the Phase 1 JSON text shape as an array while exposing cursors and warnings in structured content.
+
+## Errors
+
+Tool failures use stable codes:
+
+- `INVALID_INPUT`
+- `AUTH_REQUIRED`
+- `AUTH_FAILED`
+- `NOT_FOUND`
+- `RATE_LIMITED`
+- `UPSTREAM_UNAVAILABLE`
+- `TIMEOUT`
+- `UNSUPPORTED_OPERATION`
+- `INTERNAL_ERROR`
+
+Errors include the provider and whether retrying is useful. Raw upstream response bodies and credentials are excluded from tool-safe messages.
+
+## Architecture
+
+```text
+stdio CLI
+  -> validated environment configuration
+  -> MCP server and tool handlers
+  -> TwitterProvider contract
+       -> Rettiwt adapter
+       -> official X API adapter
+```
+
+Canonical domain schemas do not depend on either provider. Provider adapters own upstream mapping, limits, deadlines, and error translation. `src/index.ts` contains programmatic exports and has no startup side effects.
 
 ## Development
 
 ```bash
-# Run in dev mode (TypeScript, no build step)
-npm run dev
+npm ci
+npm run check
+```
 
-# Build for production
+`npm run check` runs formatting validation, linting, type checking, coverage, a production build, and package-content validation. Tests use fakes and do not need live X credentials.
+
+Useful focused commands:
+
+```bash
+npm test
+npm run typecheck
+npm run lint
 npm run build
-
-# Start the built server
-npm start
-
-# Test with MCP Inspector (interactive UI)
-npx @modelcontextprotocol/inspector node dist/index.js
+npm run check:package
+npx @modelcontextprotocol/inspector node dist/cli.js
 ```
 
----
+## Planned quality and Phase 2 work
 
-## Architecture
+Phase 2 will review each tool's semantics, ordering, completeness, pagination, provider consistency, field availability, search translation, and thread behavior. The current request objects, page envelopes, capabilities, schemas, and provider mappers are intended to support those changes without another startup or architecture rewrite.
 
-```
-MCP Client (Copilot / Claude)
-        │  stdio (JSON-RPC)
-        ▼
-  ┌─────────────────────────┐
-  │       MCP Server        │  4 tools registered via registerTool()
-  │       (index.ts)        │
-  └──────────┬──────────────┘
-             │  TwitterProvider interface (provider.ts)
-     ┌───────┴────────┬──────────────────┐
-     ▼                ▼                  ▼
-RettiwtProvider  ScraperProvider    ApiProvider
-(rettiwt-api)   (@the-convocation   (twitter-api-v2)
- free, no dev    /twitter-scraper)   official API
- account)         free, login)        paid)
-     │                │                  │
-     ▼                ▼                  ▼
-Twitter internal  Twitter web        Twitter API v2
-  endpoints       endpoints            (paid)
-```
-
----
+Optional live provider smoke tests, automated release publishing, and broader compatibility checks remain future work. Live tests must use repository secrets and must not run for untrusted pull requests.
 
 ## Troubleshooting
 
-**`Couldn't get KEY_BYTE indices` (rettiwt mode)**
-Twitter periodically changes their internal JavaScript, breaking rettiwt-api's transaction ID logic. Fix by updating to the latest version:
-```bash
-npm install rettiwt-api@latest && npm run build
-```
+`RETTIWT_API_KEY is required in rettiwt mode`
 
-**Scraper login fails**
-Make sure `TWITTER_USERNAME` and `TWITTER_PASSWORD` are correct. If Twitter prompts for email verification during login, add `TWITTER_EMAIL` to your `.env`.
+Set the key in the MCP client configuration. A shell `.env` file is not automatically shared with a desktop MCP client unless that client starts the process in the same configured environment.
 
-**API mode returns 403 / Unauthorized**
-Check that your bearer token is active and your developer app has the correct read permissions in the [Twitter Developer Portal](https://developer.x.com/en/portal/dashboard).
+`Invalid authentication data` or `AUTH_FAILED`
 
-**`get_tweet_replies` or `search_tweets` fail in rettiwt mode**
-These tools require user auth. Set `RETTIWT_API_KEY` in your `.env` — see [how to get it](#how-to-get-rettiwt_api_key) above.
+Generate a new Rettiwt key and confirm that the underlying X session is still valid. Do not post the failing key in an issue.
 
----
+`RATE_LIMITED`
+
+Wait before retrying. Lower request frequency and inspect `retryAfterSeconds` when the provider supplies it.
+
+Official API `401` or `403`
+
+Confirm the credential set, app permissions, endpoint access, and current X API plan.
+
+Node engine warning
+
+Run Node.js 22.21.0 or a newer Node 22 release. Do not use Node 23 or later with the current Rettiwt dependency.
 
 ## License
 
-ISC
+[ISC](LICENSE)

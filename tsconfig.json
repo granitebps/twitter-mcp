@@ -4,15 +4,16 @@
     "module": "ES2022",
     "moduleResolution": "bundler",
     "esModuleInterop": true,
+    "allowJs": true,
     "strict": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "declaration": true,
-    "sourceMap": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "test/**/*", "scripts/**/*", "vitest.config.ts", "eslint.config.js"],
   "exclude": ["node_modules", "dist"]
 }

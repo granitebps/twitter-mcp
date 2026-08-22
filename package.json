@@ -1,39 +1,78 @@
 {
-  "name": "twitter-mcp",
+  "name": "@granitebps/twitter-mcp",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",
-  "bin": {
-    "twitter-mcp": "dist/index.js"
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
+  "bin": {
+    "twitter-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
+  "mcpName": "io.github.granitebps/twitter-mcp",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/index.ts",
-    "start": "node dist/index.js"
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "dev": "npm run build && npm start",
+    "start": "node dist/cli.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:package": "node scripts/check-package.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run check:package",
+    "prepack": "npm run clean && npm run build"
   },
   "engines": {
-    "node": ">=18"
+    "node": "^22.21.0"
   },
   "keywords": [
     "mcp",
     "twitter",
     "x",
-    "ai"
+    "ai",
+    "model-context-protocol",
+    "stdio"
   ],
-  "author": "",
+  "author": "granitebps",
   "license": "ISC",
-  "description": "MCP server for fetching Twitter/X data — tweets, replies, likes, retweets, bookmarks, followers, and user profiles",
+  "description": "Read public Twitter/X posts, replies, profiles, and search results through MCP.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/granitebps/twitter-mcp.git"
+  },
+  "homepage": "https://github.com/granitebps/twitter-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/granitebps/twitter-mcp/issues"
+  },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "@the-convocation/twitter-scraper": "^0.22.2",
-    "dotenv": "^17.3.1",
-    "rettiwt-api": "^6.2.1",
-    "twitter-api-v2": "^1.29.0",
-    "zod": "^4.3.6"
+    "@modelcontextprotocol/server": "^2.0.0",
+    "dotenv": "^17.4.2",
+    "rettiwt-api": "^7.1.3",
+    "twitter-api-v2": "^1.29.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@modelcontextprotocol/client": "^2.0.0",
     "@types/node": "^25.5.0",
-    "tsx": "^4.21.0",
-    "typescript": "^6.0.2"
+    "@vitest/coverage-v8": "^3.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
   }
 }

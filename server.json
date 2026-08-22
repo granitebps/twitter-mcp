@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.granitebps/twitter-mcp",
+  "title": "Twitter/X MCP",
+  "description": "Read public Twitter/X posts, replies, profiles, and search results through Rettiwt or the official X API.",
+  "repository": {
+    "url": "https://github.com/granitebps/twitter-mcp",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@granitebps/twitter-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "RETTIWT_API_KEY",
+          "description": "Rettiwt key containing an authenticated X browser session",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}
