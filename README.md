@@ -293,11 +293,11 @@ npm run test:live
 
 Choose a public post whose author profile is still available. If either variable is missing, the command stops before starting the live server or making a network request. It does not run as part of `npm run check` or normal CI.
 
-## Before the first public release
+## Release verification
 
-The automated suite covers configuration, provider adapters, MCP calls, the compiled stdio entry point, and installation from an npm tarball. Before publishing 1.0, run the live Rettiwt smoke test and review result fields, pagination, reply ordering, and search translation.
+The automated suite covers configuration, provider adapters, MCP calls, the compiled stdio entry point, and installation from an npm tarball. The live Rettiwt smoke test is optional and does not run in normal CI. Version 1.0.0 was prepared without live upstream verification.
 
-Automated publishing is not set up. Live tests must read credentials from repository secrets and must not run for untrusted pull requests.
+Maintainers can follow the [release guide](https://github.com/granitebps/twitter-mcp/blob/main/RELEASE.md) for the manual npm, MCP Registry, and GitHub release process. Live tests must read credentials from repository secrets and must not run for untrusted pull requests.
 
 ## Troubleshooting
 
