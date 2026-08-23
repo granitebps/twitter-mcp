@@ -26,15 +26,15 @@
     "dev": "npm run build && npm start",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test": "npm run build && vitest run",
+    "test:coverage": "npm run build && vitest run --coverage",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:package": "node scripts/check-package.mjs",
     "check:install": "node scripts/check-install.mjs",
     "test:live": "npm run build && vitest run --config vitest.live.config.ts",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run check:package && npm run check:install",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run check:package && npm run check:install",
     "prepack": "npm run clean && npm run build"
   },
   "engines": {
