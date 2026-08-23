@@ -1,5 +1,11 @@
 # Twitter/X MCP
 
+[![CI](https://github.com/granitebps/twitter-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/granitebps/twitter-mcp/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/%40granitebps%2Ftwitter-mcp.svg)](https://www.npmjs.com/package/@granitebps/twitter-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/%40granitebps%2Ftwitter-mcp.svg)](https://www.npmjs.com/package/@granitebps/twitter-mcp)
+[![MCP Registry](https://img.shields.io/badge/MCP-Registry-5A67D8.svg)](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.granitebps%2Ftwitter-mcp)
+[![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](LICENSE)
+
 Twitter/X MCP lets an MCP client read public X posts, replies, and profiles, or search X. It uses Rettiwt by default, so you do not need an X developer plan. You can switch to the official X API if you have access.
 
 ## Requirements
