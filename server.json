@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.granitebps/twitter-mcp",
   "title": "Twitter/X MCP",
-  "description": "Read public Twitter/X posts, replies, profiles, and search results through Rettiwt or the official X API.",
+  "description": "Read public X posts, replies, profiles, and search results through Rettiwt or the official API.",
   "repository": {
     "url": "https://github.com/granitebps/twitter-mcp",
     "source": "github"

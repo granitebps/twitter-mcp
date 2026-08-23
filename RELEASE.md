@@ -26,9 +26,10 @@ npm ci
 npm run check
 npm audit --omit=dev
 npm pack --dry-run
+mcp-publisher validate
 ```
 
-`git status --short` must print nothing before publication. Review the packed file list and confirm that it contains `dist/cli.js`, `dist/index.js`, `README.md`, `LICENSE`, and `server.json`. It must not contain credentials, `.env` files, tests, source files, or maintainer documentation.
+`git status --short` must print nothing before publication. Review the packed file list and confirm that it contains `dist/cli.js`, `dist/index.js`, `README.md`, `LICENSE`, and `server.json`. It must not contain credentials, `.env` files, tests, source files, or maintainer documentation. The Registry validator must report `Validating server.json... OK`.
 
 Confirm npm authentication and package ownership:
 
@@ -63,21 +64,31 @@ The result must show version `1.0.0`, the `latest` tag, this GitHub repository, 
 
 ## 3. Verify the public package
 
-Use the package from npm rather than the local checkout:
-
-Load `RETTIWT_API_KEY` into the shell from your password manager without putting its value in command history. Then run:
+Run the check from a temporary directory. Running `npx` inside this package's repository can make npm select the local project instead of the published executable.
 
 ```bash
-npx @modelcontextprotocol/inspector npx -y @granitebps/twitter-mcp@1.0.0
+release_test_dir=$(mktemp -d)
+cd "$release_test_dir"
 ```
 
-Remove the key from the shell when the check finishes:
+Start Inspector in API mode with a fake token. Inspector's `-e` options pass the variables to the MCP child process.
+
+```bash
+npx -y @modelcontextprotocol/inspector@latest --web \
+  -e TWITTER_MODE=api \
+  -e TWITTER_BEARER_TOKEN=verification-only \
+  npx -y @granitebps/twitter-mcp@1.0.0
+```
+
+List the tools and call `get_server_info`. Confirm that it reports version `1.0.0` and provider `api`. The other tools require real upstream credentials and are not part of this package-startup check.
+
+For optional live Rettiwt testing, return to the repository and follow the README's live smoke-test instructions. Load `RETTIWT_API_KEY` into the shell from your password manager without putting its value in command history, and use a disposable X account. Remove the key from the shell when the check finishes:
 
 ```bash
 unset RETTIWT_API_KEY
 ```
 
-List the tools and call `get_server_info`. If you choose to test upstream behavior, use a disposable X account and call each Twitter tool with public data. Never paste the Rettiwt key into Inspector input or captured logs.
+Never paste the Rettiwt key into Inspector input or captured logs.
 
 Also test one client configuration from the README with the exact version first:
 
