@@ -267,7 +267,7 @@ npm ci
 npm run check
 ```
 
-`npm run check` checks formatting, lint, types, coverage, the production build, and npm package contents. The test suite uses fakes and does not need X credentials.
+`npm run check` checks formatting, lint, types, coverage, the production build, npm package contents, and a clean tarball installation. The default test suite uses fakes and does not need X credentials.
 
 Useful focused commands:
 
@@ -277,12 +277,25 @@ npm run typecheck
 npm run lint
 npm run build
 npm run check:package
+npm run check:install
 npx @modelcontextprotocol/inspector node dist/cli.js
 ```
 
+### Live Rettiwt smoke test
+
+The live smoke test starts the compiled stdio server and calls `get_tweet`, `get_tweet_replies`, `get_user_profile`, and `search_tweets`. It derives the username and search query from the selected post.
+
+```bash
+RETTIWT_API_KEY=your_key_here \
+TWITTER_LIVE_TWEET_ID=1234567890123456789 \
+npm run test:live
+```
+
+Choose a public post whose author profile is still available. If either variable is missing, the command stops before starting the live server or making a network request. It does not run as part of `npm run check` or normal CI.
+
 ## Before the first public release
 
-The automated suite covers configuration, provider adapters, MCP calls, and the compiled stdio entry point. Before publishing 1.0, the project still needs live Rettiwt smoke tests and a tool-by-tool review of result fields, pagination, reply ordering, and search translation.
+The automated suite covers configuration, provider adapters, MCP calls, the compiled stdio entry point, and installation from an npm tarball. Before publishing 1.0, run the live Rettiwt smoke test and review result fields, pagination, reply ordering, and search translation.
 
 Automated publishing is not set up. Live tests must read credentials from repository secrets and must not run for untrusted pull requests.
 
