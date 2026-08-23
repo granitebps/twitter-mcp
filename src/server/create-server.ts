@@ -15,7 +15,7 @@ export function createTwitterServer(options: CreateServerOptions): McpServer {
     { name: "twitter-mcp", version: options.version },
     {
       instructions:
-        "These tools read external X data. Field availability depends on the active provider. Call get_server_info to inspect provider capabilities.",
+        "Use these tools to read public X data. Results can omit fields that the selected provider does not return. Call get_server_info to check the provider, limits, and pagination support.",
     },
   );
   registerTwitterTools(server, options);

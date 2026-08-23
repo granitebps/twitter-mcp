@@ -39,7 +39,7 @@ export interface RettiwtClient {
 function timeoutError(): TwitterError {
   return new TwitterError({
     code: "TIMEOUT",
-    safeMessage: "The X provider request timed out",
+    safeMessage: "The Rettiwt request timed out",
     provider: "rettiwt",
     retryable: true,
   });
@@ -53,7 +53,7 @@ function mapRettiwtFailure(error: unknown): TwitterError {
   if (message.includes("401") || message.includes("auth")) {
     return new TwitterError({
       code: "AUTH_FAILED",
-      safeMessage: "Rettiwt authentication failed; generate a new RETTIWT_API_KEY",
+      safeMessage: "Rettiwt authentication failed. Generate a new RETTIWT_API_KEY.",
       provider: "rettiwt",
       retryable: false,
       cause: error,

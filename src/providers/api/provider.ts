@@ -150,12 +150,8 @@ export class OfficialApiProvider implements TwitterProvider {
     }
   }
 
-  async getTweetReplies(request: GetRepliesRequest, context: RequestContext): Promise<TweetPage> {
-    return await this.search(
-      `conversation_id:${request.tweetId} is:reply`,
-      request.maxResults,
-      context,
-    );
+  getTweetReplies(request: GetRepliesRequest, context: RequestContext): Promise<TweetPage> {
+    return this.search(`conversation_id:${request.tweetId} is:reply`, request.maxResults, context);
   }
 
   async getUserProfile(request: GetProfileRequest, context: RequestContext): Promise<UserProfile> {
@@ -180,8 +176,8 @@ export class OfficialApiProvider implements TwitterProvider {
     }
   }
 
-  async searchTweets(request: SearchTweetsRequest, context: RequestContext): Promise<TweetPage> {
-    return await this.search(request.query, request.maxResults, context);
+  searchTweets(request: SearchTweetsRequest, context: RequestContext): Promise<TweetPage> {
+    return this.search(request.query, request.maxResults, context);
   }
 
   private async search(

@@ -30,7 +30,7 @@ describe("toTwitterError", () => {
 
     expect(result).toMatchObject({
       code: "INTERNAL_ERROR",
-      safeMessage: "Unexpected provider failure",
+      safeMessage: "The X provider returned an unexpected error",
       provider: "api",
       retryable: false,
     });

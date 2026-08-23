@@ -55,7 +55,7 @@ export function toTwitterError(error: unknown, provider: ProviderName): TwitterE
 
   return new TwitterError({
     code: "INTERNAL_ERROR",
-    safeMessage: "Unexpected provider failure",
+    safeMessage: "The X provider returned an unexpected error",
     provider,
     retryable: false,
     cause: error,

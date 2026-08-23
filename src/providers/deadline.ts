@@ -1,4 +1,4 @@
-export async function withDeadline<T>(
+export function withDeadline<T>(
   operation: Promise<T>,
   signal: AbortSignal,
   deadline: number,
@@ -7,7 +7,7 @@ export async function withDeadline<T>(
   const remaining = deadline - Date.now();
   if (signal.aborted || remaining <= 0) throw createTimeoutError();
 
-  return await new Promise<T>((resolve, reject) => {
+  return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => reject(createTimeoutError()), remaining);
     const abort = () => reject(createTimeoutError());
     signal.addEventListener("abort", abort, { once: true });

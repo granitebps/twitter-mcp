@@ -1,27 +1,27 @@
 # Twitter/X MCP
 
-A read-only Model Context Protocol server for public X posts, replies, profiles, and search. Rettiwt is the default provider and does not require an official X developer plan. The official X API remains available as an optional mode.
+Twitter/X MCP lets an MCP client read public X posts, replies, and profiles, or search X. It uses Rettiwt by default, so you do not need an X developer plan. You can switch to the official X API if you have access.
 
 ## Requirements
 
-- Node.js 22.21.0 or a newer Node 22 release. Node 23 and later are not supported by the current Rettiwt release.
-- A `RETTIWT_API_KEY` for the default provider, or official X API credentials for API mode.
+- Node.js 22.21.0 or newer within the Node 22 release line. The current Rettiwt release does not support Node 23 or later.
+- A `RETTIWT_API_KEY`. Official X API credentials work when you select API mode.
 
 ## Quick start
 
-You do not need to clone this repository after the package is published. Configure your MCP client to run:
+Once the package is published, your MCP client can run it without a clone:
 
 ```bash
 npx -y @granitebps/twitter-mcp
 ```
 
-Rettiwt is selected when `TWITTER_MODE` is omitted. Every client configuration must provide a `RETTIWT_API_KEY` to the server process.
+The server selects Rettiwt when you omit `TWITTER_MODE`. Pass `RETTIWT_API_KEY` in the client configuration.
 
 The server uses stdio. Keep stdout reserved for MCP traffic.
 
 ## Run from a cloned repository
 
-You can build and run the same stdio server directly from a local checkout:
+To develop the server or use a clone directly:
 
 ```bash
 git clone https://github.com/granitebps/twitter-mcp.git
@@ -30,35 +30,35 @@ npm ci
 npm run build
 ```
 
-Use `node` as the client command and the absolute path to `dist/cli.js` as its argument:
+Point your MCP client at the compiled entry point:
 
 ```text
 node /absolute/path/to/twitter-mcp/dist/cli.js
 ```
 
-Run `npm run build` again after changing the source. Do not point an MCP client at `src` or use `npm run dev` as its stdio command because build output can interfere with MCP traffic.
+Run `npm run build` after each source change. Do not use `src` or `npm run dev` as the client's stdio command. Build logs on stdout can corrupt MCP messages.
 
 ## Client configuration
 
-The examples below use the published package first and show the local checkout alternative immediately after it. Replace `/absolute/path/to/twitter-mcp` with the actual cloned repository path. Replace `your_key_here` with your Rettiwt key and keep that configuration out of version control.
+Each example starts with the npm package, followed by the local equivalent. Replace `/absolute/path/to/twitter-mcp` with your clone's path and `your_key_here` with your Rettiwt key. Do not commit a configuration file that contains the key.
 
 ### Claude
 
-For Claude Code, add the published package with:
+Add the npm package to Claude Code:
 
 ```bash
 claude mcp add twitter --env RETTIWT_API_KEY=your_key_here -- npx -y @granitebps/twitter-mcp
 ```
 
-To use a local checkout instead:
+For a local build:
 
 ```bash
 claude mcp add twitter --env RETTIWT_API_KEY=your_key_here -- node /absolute/path/to/twitter-mcp/dist/cli.js
 ```
 
-Claude Code stores these commands in its local scope by default. Add `--scope user` before `twitter` if you want the server available across projects.
+Claude Code uses local scope by default. Add `--scope user` before `twitter` to make the server available across projects.
 
-For Claude Desktop, add the equivalent entry to `claude_desktop_config.json`, then restart the app:
+Claude Desktop reads the same server from `claude_desktop_config.json`. Restart the app after editing the file.
 
 ```json
 {
@@ -74,7 +74,7 @@ For Claude Desktop, add the equivalent entry to `claude_desktop_config.json`, th
 }
 ```
 
-For a local checkout, change only the launch fields:
+For a local build, replace `command` and `args` with:
 
 ```json
 {
@@ -85,7 +85,7 @@ For a local checkout, change only the launch fields:
 
 ### Codex
 
-Add the published package to `~/.codex/config.toml`, or to `.codex/config.toml` in a trusted project:
+Add the npm package to `~/.codex/config.toml`, or to `.codex/config.toml` in a trusted project:
 
 ```toml
 [mcp_servers.twitter]
@@ -96,7 +96,7 @@ args = ["-y", "@granitebps/twitter-mcp"]
 RETTIWT_API_KEY = "your_key_here"
 ```
 
-For a local checkout, use:
+For a local build:
 
 ```toml
 [mcp_servers.twitter]
@@ -107,11 +107,11 @@ args = ["/absolute/path/to/twitter-mcp/dist/cli.js"]
 RETTIWT_API_KEY = "your_key_here"
 ```
 
-Restart Codex after changing its configuration. The Codex CLI, IDE extension, and desktop app share this configuration on the same host.
+Restart Codex after editing the file. The CLI, IDE extension, and desktop app share this configuration on the same computer.
 
 ### OpenCode
 
-Add the published package to `opencode.json` or `opencode.jsonc`:
+Add the npm package to `opencode.json` or `opencode.jsonc`:
 
 ```json
 {
@@ -129,7 +129,7 @@ Add the published package to `opencode.json` or `opencode.jsonc`:
 }
 ```
 
-For a local checkout, change only the command array:
+For a local build, replace the `command` array with:
 
 ```json
 {
@@ -139,7 +139,7 @@ For a local checkout, change only the command array:
 
 ### Cursor
 
-Add the published package to `.cursor/mcp.json` in a project, or to `~/.cursor/mcp.json` for global use:
+Add the npm package to `.cursor/mcp.json` in a project, or to `~/.cursor/mcp.json` for global use:
 
 ```json
 {
@@ -155,7 +155,7 @@ Add the published package to `.cursor/mcp.json` in a project, or to `~/.cursor/m
 }
 ```
 
-For a local checkout, change only the launch fields:
+For a local build, replace `command` and `args` with:
 
 ```json
 {
@@ -166,10 +166,10 @@ For a local checkout, change only the launch fields:
 
 ## Providers
 
-| Mode         | Selection                          | Credentials                                | Cost and tradeoff                                                                                          |
-| ------------ | ---------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| Rettiwt      | Default, or `TWITTER_MODE=rettiwt` | `RETTIWT_API_KEY`                          | No official X developer plan. Uses unofficial internal endpoints and may break or put the account at risk. |
-| Official API | `TWITTER_MODE=api`                 | Bearer token or complete OAuth credentials | Uses the supported X API. X controls access tiers and pricing.                                             |
+| Mode         | Selection                          | Credentials                                | Notes                                                                                               |
+| ------------ | ---------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Rettiwt      | Default, or `TWITTER_MODE=rettiwt` | `RETTIWT_API_KEY`                          | Free of X API charges. Uses unofficial internal endpoints and may break or put the account at risk. |
+| Official API | `TWITTER_MODE=api`                 | Bearer token or complete OAuth credentials | Uses the supported X API. X controls access tiers and pricing.                                      |
 
 ### Rettiwt setup
 
@@ -179,9 +179,9 @@ Rettiwt requires authenticated user mode in this server. Guest mode is not suppo
 2. Store it as `RETTIWT_API_KEY` in the MCP client's environment.
 3. Start the server without `TWITTER_MODE`, or set `TWITTER_MODE=rettiwt` explicitly.
 
-A Rettiwt key is a base64 encoding of X session cookies and has the authority of that account. Treat it like a password. Do not commit it, paste it into issues, include it in logs, or pass it as a command-line argument. Use only a key for an account you own or are authorized to access.
+A Rettiwt key contains X session cookies and has the same access as the account. Treat it like a password. Do not commit it, paste it into an issue, log it, or pass it as a command-line argument. Use a key only for an account you own or have permission to access.
 
-Rettiwt is unofficial. X's current [automation rules](https://help.x.com/en/rules-and-policies/x-automation) prohibit non-API website automation and warn that violations may lead to account suspension. Review the [X Rules](https://help.x.com/en/rules-and-policies/x-rules) before use. You are responsible for compliance and account risk.
+Rettiwt is unofficial. X's [automation rules](https://help.x.com/en/rules-and-policies/x-automation) prohibit non-API website automation and warn that violations may lead to account suspension. Read the [X Rules](https://help.x.com/en/rules-and-policies/x-rules) before using this mode. You accept the compliance and account risk.
 
 ### Official X API setup
 
@@ -202,7 +202,7 @@ TWITTER_ACCESS_TOKEN=your_access_token
 TWITTER_ACCESS_SECRET=your_access_secret
 ```
 
-Create credentials in the [X Developer Portal](https://developer.x.com/en/portal/dashboard). X sets API access and pricing. Check its current terms before choosing this mode.
+Create credentials in the [X Developer Portal](https://developer.x.com/en/portal/dashboard). X controls API access and pricing, so check the current terms before choosing this mode.
 
 ## Configuration
 
@@ -217,7 +217,7 @@ Create credentials in the [X Developer Portal](https://developer.x.com/en/portal
 | `TWITTER_ACCESS_SECRET`      | OAuth option    | OAuth access secret.                                        |
 | `TWITTER_REQUEST_TIMEOUT_MS` | No              | Request deadline from 1,000 to 120,000 ms. Default: 30,000. |
 
-Partial OAuth configuration fails startup. Credentials are read from the process environment and are never returned by `get_server_info`.
+The server rejects an incomplete OAuth configuration at startup. It reads credentials from the process environment and never returns them through `get_server_info`.
 
 ## Tools
 
@@ -229,7 +229,7 @@ Partial OAuth configuration fails startup. Credentials are read from the process
 | `search_tweets`     | `query`, optional `max_results`    | Matching posts and available page metadata. Search operators depend on the provider. |
 | `get_server_info`   | None                               | Version, active provider, tools, limits, and capabilities.                           |
 
-`max_results` defaults to 10 and accepts 1 through 100. Each successful call returns structured MCP content and JSON text for older clients. The collection tools keep the Phase 1 JSON text shape as an array while exposing cursors and warnings in structured content.
+`max_results` defaults to 10 and accepts 1 through 100. Successful calls return structured MCP content plus JSON text for older clients. Collection tools return the items as JSON text and put cursors and warnings in structured content.
 
 ## Errors
 
@@ -245,7 +245,7 @@ Tool failures use stable codes:
 - `UNSUPPORTED_OPERATION`
 - `INTERNAL_ERROR`
 
-Errors include the provider and whether retrying is useful. Raw upstream response bodies and credentials are excluded from tool-safe messages.
+Errors name the provider and tell the client whether a retry may work. They do not include credentials or raw upstream response bodies.
 
 ## Architecture
 
@@ -258,7 +258,7 @@ stdio CLI
        -> official X API adapter
 ```
 
-Canonical domain schemas do not depend on either provider. Provider adapters own upstream mapping, limits, deadlines, and error translation. `src/index.ts` contains programmatic exports and has no startup side effects.
+The domain schemas do not depend on either provider. Each provider adapter maps upstream data, enforces limits and deadlines, and translates errors. Importing `src/index.ts` does not start the server.
 
 ## Development
 
@@ -267,7 +267,7 @@ npm ci
 npm run check
 ```
 
-`npm run check` runs formatting validation, linting, type checking, coverage, a production build, and package-content validation. Tests use fakes and do not need live X credentials.
+`npm run check` checks formatting, lint, types, coverage, the production build, and npm package contents. The test suite uses fakes and does not need X credentials.
 
 Useful focused commands:
 
@@ -280,31 +280,31 @@ npm run check:package
 npx @modelcontextprotocol/inspector node dist/cli.js
 ```
 
-## Planned quality and Phase 2 work
+## Before the first public release
 
-Phase 2 will review each tool's semantics, ordering, completeness, pagination, provider consistency, field availability, search translation, and thread behavior. The current request objects, page envelopes, capabilities, schemas, and provider mappers are intended to support those changes without another startup or architecture rewrite.
+The automated suite covers configuration, provider adapters, MCP calls, and the compiled stdio entry point. Before publishing 1.0, the project still needs live Rettiwt smoke tests and a tool-by-tool review of result fields, pagination, reply ordering, and search translation.
 
-Optional live provider smoke tests, automated release publishing, and broader compatibility checks remain future work. Live tests must use repository secrets and must not run for untrusted pull requests.
+Automated publishing is not set up. Live tests must read credentials from repository secrets and must not run for untrusted pull requests.
 
 ## Troubleshooting
 
-`RETTIWT_API_KEY is required in rettiwt mode`
+### Missing Rettiwt key
 
-Set the key in the MCP client configuration. A shell `.env` file is not automatically shared with a desktop MCP client unless that client starts the process in the same configured environment.
+If startup reports `RETTIWT_API_KEY is required in rettiwt mode`, set the key in the MCP client configuration. Desktop clients do not automatically inherit a shell's `.env` file.
 
-`Invalid authentication data` or `AUTH_FAILED`
+### Invalid Rettiwt authentication
 
-Generate a new Rettiwt key and confirm that the underlying X session is still valid. Do not post the failing key in an issue.
+If you see `Invalid authentication data` or `AUTH_FAILED`, generate a new Rettiwt key and check that the X session still works. Never post the failing key in an issue.
 
-`RATE_LIMITED`
+### Rate limit
 
-Wait before retrying. Lower request frequency and inspect `retryAfterSeconds` when the provider supplies it.
+For `RATE_LIMITED`, wait before retrying and reduce the request rate. Check `retryAfterSeconds` when the provider supplies it.
 
-Official API `401` or `403`
+### Official API 401 or 403
 
 Confirm the credential set, app permissions, endpoint access, and current X API plan.
 
-Node engine warning
+### Node engine warning
 
 Run Node.js 22.21.0 or a newer Node 22 release. Do not use Node 23 or later with the current Rettiwt dependency.
 

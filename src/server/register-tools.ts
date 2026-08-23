@@ -94,7 +94,7 @@ export function registerTwitterTools(
     "get_tweet",
     {
       title: "Get tweet",
-      description: "Read one public X post by numeric ID or an x.com or twitter.com status URL.",
+      description: "Fetch a public X post from its numeric ID or status URL.",
       inputSchema: getTweetInputSchema,
       outputSchema: tweetOutputSchema,
       annotations,
@@ -113,7 +113,7 @@ export function registerTwitterTools(
     "get_tweet_replies",
     {
       title: "Get tweet replies",
-      description: "Read replies to one public X post.",
+      description: "Fetch replies to a public X post.",
       inputSchema: getTweetRepliesInputSchema,
       outputSchema: pageOutputSchema,
       annotations,
@@ -136,7 +136,7 @@ export function registerTwitterTools(
     "get_user_profile",
     {
       title: "Get user profile",
-      description: "Read a public X profile by username.",
+      description: "Fetch a public X profile by username.",
       inputSchema: getUserProfileInputSchema,
       outputSchema: profileOutputSchema,
       annotations,
@@ -155,7 +155,7 @@ export function registerTwitterTools(
     "search_tweets",
     {
       title: "Search tweets",
-      description: "Search public X posts. Supported operators depend on the active provider.",
+      description: "Search public X posts. The selected provider determines which operators work.",
       inputSchema: searchTweetsInputSchema,
       outputSchema: pageOutputSchema,
       annotations,
@@ -178,12 +178,12 @@ export function registerTwitterTools(
     "get_server_info",
     {
       title: "Get server info",
-      description: "Report the active provider, version, tools, and provider capabilities.",
+      description: "Show the server version, selected provider, limits, and supported operations.",
       inputSchema: z.object({}),
       outputSchema: serverInfoOutputSchema,
       annotations,
     },
-    async () =>
+    () =>
       objectResult({
         name: "twitter-mcp",
         version,
