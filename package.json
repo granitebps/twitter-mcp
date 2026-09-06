@@ -33,8 +33,9 @@
     "format:check": "prettier --check .",
     "check:package": "node scripts/check-package.mjs",
     "check:install": "node scripts/check-install.mjs",
+    "check:release": "node scripts/check-release.mjs && node scripts/check-workflows.mjs",
     "test:live": "npm run build && vitest run --config vitest.live.config.ts",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run check:package && npm run check:install",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run check:release && npm run check:package && npm run check:install",
     "prepack": "npm run clean && npm run build"
   },
   "engines": {

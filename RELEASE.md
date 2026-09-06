@@ -1,141 +1,138 @@
 # Release guide
 
-This project uses a manual release process. Publishing an npm version or MCP Registry version cannot be undone by changing the repository, so confirm every version before running a publish command.
+Releases are prepared in the repository and published by
+`.github/workflows/release.yml` from an explicitly approved `v*` tag. The
+workflow publishes in this order: npm, MCP Registry, then GitHub Releases.
 
-## Requirements
+Publishing npm and MCP Registry versions is irreversible. Preparing a release
+does not authorize creating or pushing its tag.
 
-- Ownership of the `@granitebps` npm scope
-- npm account with two-factor authentication enabled
-- GitHub access to `granitebps/twitter-mcp`
-- Node.js 22.21.0 or a newer Node 22 release
-- A clean checkout of the `main` branch
-- The [`mcp-publisher`](https://modelcontextprotocol.io/registry/quickstart) CLI for the MCP Registry step
-- GitHub CLI for the commands below, or access to the GitHub release page
+## One-time repository setup
 
-Do not put npm tokens, Rettiwt keys, X API credentials, or session cookies in the repository, command history, release notes, or logs.
+Before the first automated release:
 
-## 1. Confirm the release
+1. In npm package settings for `@granitebps/twitter-mcp`, configure a trusted
+   GitHub Actions publisher for repository `granitebps/twitter-mcp` and workflow
+   filename `release.yml`. Under **Allowed actions**, explicitly select
+   `npm publish`. Do not configure an npm token.
+2. Keep GitHub Actions enabled with permission to create releases. The workflow
+   grants `id-token: write` and `contents: write` only to its publishing job.
+3. Protect `main` after the new CI jobs have passed on GitHub. Require the
+   deterministic check, package checks, production audit, and release preflight;
+   require current branches, resolved conversations, and linear history; block
+   force-pushes and branch deletion.
 
-Check that `package.json`, `package-lock.json`, `server.json`, and the changelog use the intended version. The npm and MCP Registry versions must match.
+These settings are remote administration tasks and are not changed by the
+repository files.
+
+## Prepare a candidate
+
+Use Node.js 22.21.0 or a newer Node 22 release. Start from the exact `main`
+commit intended for release with a clean worktree.
+
+1. Choose the version according to semantic versioning and the
+   [v1 compatibility contract](docs/v1-compatibility.md).
+2. Update the version in `package.json`, `package-lock.json`, and `server.json`.
+3. Add the matching entry to `CHANGELOG.md`.
+4. Add `docs/release-notes-vX.Y.Z.md`. This file is the exact GitHub release
+   body and must describe installation, notable changes, known limitations, and
+   any compatibility impact.
+5. Review the complete diff and confirm that it contains no credentials.
+
+The release contract checker requires all package and Registry metadata to
+match. On a tag, it also requires the tag to equal `v` plus the package version
+and requires the corresponding release-notes file.
+
+## Verify without publishing
+
+Run the same deterministic checks used by CI:
+
+```bash
+npm ci
+npm run check
+npm audit --omit=dev --audit-level=high
+mcp-publisher validate
+git diff --check
+```
+
+Review the packed file list from `npm run check:package`. It must contain the
+compiled CLI and library, README, license, and `server.json`; it must not contain
+credentials, `.env` files, tests, sources, or maintainer documentation.
+
+Open the pull request and wait for CI and the release preflight to pass. The
+preflight checks the exact commit, installs and exercises the npm tarball, and
+validates `server.json` with a checksum-pinned MCP Publisher. Pull requests and
+ordinary branch pushes cannot enter the publishing job.
+
+## Record approval and create the tag
+
+Before tagging, record approval for all four of these values:
+
+- version;
+- exact commit SHA;
+- tag name;
+- authorization to publish npm, MCP Registry, and GitHub releases.
+
+Then tag the approved commit without moving or recreating an existing release
+tag:
 
 ```bash
 git switch main
 git pull --ff-only
 git status --short
-npm ci
-npm run check
-npm audit --omit=dev
-npm pack --dry-run
-mcp-publisher validate
+git rev-parse HEAD
+git tag -a vX.Y.Z -m "Release vX.Y.Z"
+git push origin vX.Y.Z
 ```
 
-`git status --short` must print nothing before publication. Review the packed file list and confirm that it contains `dist/cli.js`, `dist/index.js`, `README.md`, `LICENSE`, and `server.json`. It must not contain credentials, `.env` files, tests, source files, or maintainer documentation. The Registry validator must report `Validating server.json... OK`.
+The tag push runs reusable CI and the release preflight before the publishing
+job. The workflow checks out `github.sha`, confirms that the tag points to that
+commit, and checks version-specific metadata again.
 
-Confirm npm authentication and package ownership:
+## Publication and reruns
 
-```bash
-npm whoami
-npm access list packages @granitebps
-```
+The publishing job uses npm trusted publishing with GitHub OIDC. It verifies the
+public package and its `gitHead` before continuing. It then creates a Registry
+publication document bound to the triggering commit, uses GitHub OIDC for the
+MCP Registry, and finally creates the GitHub release from the tag-specific
+notes.
 
-For the first release, this command should report that the package does not exist:
+If a run fails after publishing one destination, rerun the workflow for the
+same immutable tag. Each step accepts an existing version only when its public
+metadata matches the approved version, package, transport, and commit. Never
+move the tag, reuse the version for different code, or retry with a different
+commit.
 
-```bash
-npm view @granitebps/twitter-mcp version
-```
+If an existing npm version or Registry entry does not match, stop. Choose a new
+patch version, fix the metadata, repeat review and approval, and create a new
+tag. If a published npm version has a serious problem, deprecate it with a
+specific message directing users to the fixed version; do not unpublish or
+overwrite it.
 
-Stop if it returns an unexpected version or package owner.
+## Verify the release
 
-## 2. Publish to npm
+After the workflow succeeds:
 
-The package has `publishConfig.access` set to `public`, so the release command is:
+1. Confirm npm serves `@granitebps/twitter-mcp@X.Y.Z`, its `gitHead` equals the
+   approved commit, the `latest` tag is correct, and npm displays provenance.
+2. From a temporary directory, run the exact published version and use MCP
+   Inspector to list tools and call `get_server_info` with a fake API token:
 
-```bash
-npm publish
-```
+   ```bash
+   release_test_dir=$(mktemp -d)
+   cd "$release_test_dir"
+   npx -y @modelcontextprotocol/inspector@latest --web \
+     -e TWITTER_MODE=api \
+     -e TWITTER_BEARER_TOKEN=verification-only \
+     npx -y @granitebps/twitter-mcp@X.Y.Z
+   ```
 
-Complete npm's two-factor authentication prompt. Do not retry blindly after a timeout. Check npm first because the original request may have succeeded.
+3. Confirm the MCP Registry lists
+   `io.github.granitebps/twitter-mcp@X.Y.Z` with the matching npm package and
+   `stdio` transport.
+4. Confirm the GitHub release and tag both point to the approved commit and the
+   release body matches `docs/release-notes-vX.Y.Z.md`.
 
-```bash
-npm view @granitebps/twitter-mcp@1.0.0 name version dist-tags repository bin
-```
-
-The result must show version `1.0.0`, the `latest` tag, this GitHub repository, and the `twitter-mcp` executable.
-
-## 3. Verify the public package
-
-Run the check from a temporary directory. Running `npx` inside this package's repository can make npm select the local project instead of the published executable.
-
-```bash
-release_test_dir=$(mktemp -d)
-cd "$release_test_dir"
-```
-
-Start Inspector in API mode with a fake token. Inspector's `-e` options pass the variables to the MCP child process.
-
-```bash
-npx -y @modelcontextprotocol/inspector@latest --web \
-  -e TWITTER_MODE=api \
-  -e TWITTER_BEARER_TOKEN=verification-only \
-  npx -y @granitebps/twitter-mcp@1.0.0
-```
-
-List the tools and call `get_server_info`. Confirm that it reports version `1.0.0` and provider `api`. The other tools require real upstream credentials and are not part of this package-startup check.
-
-For optional live Rettiwt testing, return to the repository and follow the README's live smoke-test instructions. Load `RETTIWT_API_KEY` into the shell from your password manager without putting its value in command history, and use a disposable X account. Remove the key from the shell when the check finishes:
-
-```bash
-unset RETTIWT_API_KEY
-```
-
-Never paste the Rettiwt key into Inspector input or captured logs.
-
-Also test one client configuration from the README with the exact version first:
-
-```text
-@granitebps/twitter-mcp@1.0.0
-```
-
-After the check passes, the unversioned README examples will resolve through npm's `latest` tag.
-
-## 4. Publish to the MCP Registry
-
-Do this only after npm serves `@granitebps/twitter-mcp@1.0.0`. The Registry entry points to that package and does not host it.
-
-```bash
-mcp-publisher login github
-mcp-publisher publish
-```
-
-Confirm that the Registry lists `io.github.granitebps/twitter-mcp` at version `1.0.0` and that its npm package, transport, and `RETTIWT_API_KEY` metadata match `server.json`.
-
-MCP Registry versions are immutable. If the metadata is wrong, fix it in a newer patch release rather than trying to reuse `1.0.0`.
-
-## 5. Tag and create the GitHub release
-
-Tag the exact commit used for npm publication:
-
-```bash
-git status --short
-git tag -a v1.0.0 -m "Release v1.0.0"
-git push origin v1.0.0
-gh release create v1.0.0 --title "v1.0.0" --generate-notes --verify-tag
-```
-
-Confirm that the release page points to the same commit as the tag and links to the npm package.
-
-## 6. Configure later releases
-
-After the first npm release exists, configure an npm trusted publisher for this GitHub repository. Use a dedicated GitHub Actions release workflow with `id-token: write`, a GitHub-hosted runner, and a current npm CLI. Trusted publishing removes the long-lived npm token and adds provenance for supported public packages.
-
-Follow npm's [trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/). Keep manual two-factor authentication available as the recovery path. Do not add an npm token to repository secrets once trusted publishing works.
-
-## Failed release
-
-Do not delete or overwrite a published version. If `1.0.0` has a serious problem, deprecate it with a specific message, fix the problem, and release `1.0.1`.
-
-```bash
-npm deprecate @granitebps/twitter-mcp@1.0.0 "Use 1.0.1 or newer: describe the release-blocking problem here"
-```
-
-Never use a vague deprecation message. Tell users which version to install and why.
+Credentialed Rettiwt smoke testing remains optional and separate from release
+automation. Use a disposable X account and repository secrets; never expose
+credentials to pull requests, Inspector input, release notes, or logs.

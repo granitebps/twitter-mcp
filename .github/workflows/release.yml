@@ -1,0 +1,151 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    uses: ./.github/workflows/ci.yml
+
+  release-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22.21.0
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm install --global npm@11.19.1
+      - run: npm ci
+      - run: npm run check:release
+      - run: npm run check:package
+      - run: npm run check:install
+      - name: Install the pinned MCP Publisher
+        run: |
+          publisher_archive=mcp-publisher_linux_amd64.tar.gz
+          curl -fsSLo "$publisher_archive" "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/$publisher_archive"
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  $publisher_archive" | sha256sum --check -
+          tar -xzf "$publisher_archive" mcp-publisher
+          ./mcp-publisher --version
+      - run: ./mcp-publisher validate
+
+  publish:
+    needs: [ci, release-check]
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && needs.ci.result == 'success' && needs.release-check.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22.21.0
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm install --global npm@11.19.1
+      - run: npm ci
+      - run: npm run check:release
+      - name: Confirm the approved tag commit
+        run: test "$(git rev-list -n 1 "$GITHUB_REF_NAME")" = "$GITHUB_SHA"
+      - name: Publish or verify npm package
+        run: |
+          package_name=$(node --input-type=module -e "import manifest from './package.json' with { type: 'json' }; process.stdout.write(manifest.name)")
+          package_version=$(node --input-type=module -e "import manifest from './package.json' with { type: 'json' }; process.stdout.write(manifest.version)")
+          set +e
+          existing=$(npm view "$package_name@$package_version" name version gitHead --json 2>&1)
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "$existing" | jq -e --arg name "$package_name" --arg version "$package_version" --arg sha "$GITHUB_SHA" '.name == $name and .version == $version and .gitHead == $sha'
+            echo "$package_name@$package_version already exists for this commit"
+          elif echo "$existing" | grep -q 'E404'; then
+            npm publish
+          else
+            printf '%s\n' "$existing" >&2
+            exit "$status"
+          fi
+
+          for attempt in $(seq 1 12); do
+            if published=$(npm view "$package_name@$package_version" name version gitHead --json 2>/dev/null) && echo "$published" | jq -e --arg name "$package_name" --arg version "$package_version" --arg sha "$GITHUB_SHA" '.name == $name and .version == $version and .gitHead == $sha' >/dev/null; then
+              echo "Verified $package_name@$package_version at $GITHUB_SHA"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "npm did not serve the expected package metadata" >&2
+          exit 1
+      - name: Install the pinned MCP Publisher
+        run: |
+          publisher_archive=mcp-publisher_linux_amd64.tar.gz
+          curl -fsSLo "$publisher_archive" "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/$publisher_archive"
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  $publisher_archive" | sha256sum --check -
+          tar -xzf "$publisher_archive" mcp-publisher
+          ./mcp-publisher --version
+      - name: Publish or verify MCP Registry entry
+        run: |
+          server_name=$(jq -r '.name' server.json)
+          server_version=$(jq -r '.version' server.json)
+          encoded_name=$(jq -rn --arg value "$server_name" '$value | @uri')
+          encoded_version=$(jq -rn --arg value "$server_version" '$value | @uri')
+          registry_url=https://registry.modelcontextprotocol.io/v0.1/servers
+          registry_endpoint="$registry_url/$encoded_name/versions/$encoded_version"
+          publication=registry-server.json
+          response=registry-response.json
+
+          jq --arg sha "$GITHUB_SHA" '.["_meta"]["io.modelcontextprotocol.registry/publisher-provided"].buildInfo.commit = $sha' server.json > "$publication"
+          ./mcp-publisher validate "$publication"
+
+          status=$(curl -sS -o "$response" -w '%{http_code}' "$registry_endpoint")
+          if [ "$status" = 200 ]; then
+            node scripts/check-registry-entry.mjs --expected "$publication" --actual "$response" --commit "$GITHUB_SHA"
+            echo "$server_name@$server_version already exists with matching metadata"
+          elif [ "$status" = 404 ]; then
+            ./mcp-publisher login github-oidc
+            ./mcp-publisher publish "$publication"
+          else
+            cat "$response" >&2
+            echo "MCP Registry returned HTTP $status" >&2
+            exit 1
+          fi
+
+          for attempt in $(seq 1 12); do
+            status=$(curl -sS -o "$response" -w '%{http_code}' "$registry_endpoint")
+            if [ "$status" = 200 ] && node scripts/check-registry-entry.mjs --expected "$publication" --actual "$response" --commit "$GITHUB_SHA"; then
+              echo "Verified $server_name@$server_version in the MCP Registry"
+              exit 0
+            fi
+            if [ "$status" != 404 ]; then
+              cat "$response" >&2
+              echo "MCP Registry returned HTTP $status" >&2
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "MCP Registry did not serve the expected metadata" >&2
+          exit 1
+      - name: Create or verify GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          notes="docs/release-notes-${GITHUB_REF_NAME}.md"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            test "$(gh release view "$GITHUB_REF_NAME" --json tagName --jq .tagName)" = "$GITHUB_REF_NAME"
+            echo "GitHub release $GITHUB_REF_NAME already exists"
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file "$notes"
+          fi

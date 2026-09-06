@@ -237,6 +237,10 @@ The server rejects an incomplete OAuth configuration at startup. It reads creden
 
 `max_results` defaults to 10 and accepts 1 through 100. Successful calls return structured MCP content plus JSON text for older clients. Collection tools return the items as JSON text and put cursors and warnings in structured content.
 
+The [v1 compatibility contract](https://github.com/granitebps/twitter-mcp/blob/main/docs/v1-compatibility.md)
+records the stable tool, input, output, and error behavior for the 1.x release
+line.
+
 ## Errors
 
 Tool failures use stable codes:
@@ -303,7 +307,10 @@ Choose a public post whose author profile is still available. If either variable
 
 The automated suite covers configuration, provider adapters, MCP calls, the compiled stdio entry point, and installation from an npm tarball. The live Rettiwt smoke test is optional and does not run in normal CI. Version 1.0.0 was prepared without live upstream verification.
 
-Maintainers can follow the [release guide](https://github.com/granitebps/twitter-mcp/blob/main/RELEASE.md) for the manual npm, MCP Registry, and GitHub release process. Live tests must read credentials from repository secrets and must not run for untrusted pull requests.
+Maintainers can follow the [release guide](https://github.com/granitebps/twitter-mcp/blob/main/RELEASE.md)
+for the approved-tag npm, MCP Registry, and GitHub release process. Live tests
+must read credentials from repository secrets and must not run for untrusted
+pull requests.
 
 ## Troubleshooting
 
