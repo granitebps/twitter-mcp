@@ -6,6 +6,8 @@ import { spawnSync } from "node:child_process";
 import { Client } from "@modelcontextprotocol/client";
 import { getDefaultEnvironment, StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 
+import { npmCommand } from "./npm-command.mjs";
+
 const projectRoot = process.cwd();
 const installRoot = mkdtempSync(join(tmpdir(), "twitter-mcp-install-"));
 
@@ -25,6 +27,16 @@ function run(command, args, cwd) {
     );
   }
   return result.stdout;
+}
+
+/**
+ * @param {string[]} args
+ * @param {string} cwd
+ * @returns {string}
+ */
+function runNpm(args, cwd) {
+  const invocation = npmCommand(args);
+  return run(invocation.command, invocation.args, cwd);
 }
 
 /**
@@ -66,15 +78,14 @@ let failure;
 try {
   /** @type {unknown} */
   const packed = JSON.parse(
-    run("npm", ["pack", "--json", "--pack-destination", installRoot], projectRoot),
+    runNpm(["pack", "--json", "--pack-destination", installRoot], projectRoot),
   );
   if (!isPackReport(packed)) throw new Error("npm pack returned an invalid report");
   const filename = packed[0]?.filename;
   if (!filename) throw new Error("npm pack did not return a tarball name");
 
-  run("npm", ["init", "--yes"], installRoot);
-  run(
-    "npm",
+  runNpm(["init", "--yes"], installRoot);
+  runNpm(
     ["install", "--ignore-scripts", "--no-audit", "--no-fund", join(installRoot, filename)],
     installRoot,
   );
