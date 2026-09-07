@@ -1,9 +1,16 @@
+import { readFileSync } from "node:fs";
+
 import { Client } from "@modelcontextprotocol/client";
 import { getDefaultEnvironment, StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { describe, expect, it } from "vitest";
 
 describe("stdio CLI", () => {
   it("starts the built executable and serves MCP without corrupting stdout", async () => {
+    const manifest = JSON.parse(
+      readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+    ) as { version?: unknown };
+    if (typeof manifest.version !== "string") throw new Error("Package version is missing");
+
     const transportErrors: Error[] = [];
     const transport = new StdioClientTransport({
       command: process.execPath,
@@ -23,7 +30,10 @@ describe("stdio CLI", () => {
       await client.connect(transport);
       const listed = await client.listTools();
 
-      expect(client.getServerVersion()).toMatchObject({ name: "twitter-mcp", version: "1.0.0" });
+      expect(client.getServerVersion()).toMatchObject({
+        name: "twitter-mcp",
+        version: manifest.version,
+      });
       expect(listed.tools).toHaveLength(5);
       expect(transportErrors).toEqual([]);
     } finally {
