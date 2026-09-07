@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const checker = resolve("scripts/check-release.mjs");
 const temporaryRoots: string[] = [];
@@ -73,10 +73,15 @@ function fixture(options: FixtureOptions = {}): string {
 function run(root: string, tag?: string) {
   const args = [checker, "--root", root];
   if (tag) args.push("--tag", tag);
-  return spawnSync(process.execPath, args, { encoding: "utf8" });
+  const env = { ...process.env };
+  delete env.GITHUB_REF;
+  delete env.GITHUB_REF_NAME;
+  delete env.GITHUB_REF_TYPE;
+  return spawnSync(process.execPath, args, { encoding: "utf8", env });
 }
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   for (const root of temporaryRoots.splice(0)) {
     rmSync(root, { recursive: true, force: true });
   }
@@ -84,6 +89,17 @@ afterEach(() => {
 
 describe("release metadata contract", () => {
   it("accepts synchronized package and Registry metadata", () => {
+    const result = run(fixture());
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("@granitebps/twitter-mcp@1.2.3");
+  });
+
+  it("isolates fixture validation from ambient GitHub tag metadata", () => {
+    vi.stubEnv("GITHUB_REF_TYPE", "tag");
+    vi.stubEnv("GITHUB_REF_NAME", "v1.0.1");
+    vi.stubEnv("GITHUB_REF", "refs/tags/v1.0.1");
+
     const result = run(fixture());
 
     expect(result.status).toBe(0);
