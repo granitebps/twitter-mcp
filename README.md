@@ -10,8 +10,14 @@ Twitter/X MCP lets an MCP client read public X posts, replies, and profiles, or 
 
 ## Requirements
 
-- Node.js 22.21.0 or newer within the Node 22 release line. The current Rettiwt release does not support Node 23 or later.
+- Node.js 22.21.0 or newer within the Node 22 release line is the declared supported runtime. Node 24 testing and installation limitations are described below.
 - A `RETTIWT_API_KEY`. Official X API credentials work when you select API mode.
+
+### Node 24 compatibility
+
+The full project check and all five live MCP tool calls passed on Node.js 24.19.0. CI also runs the full project check on Node 24.
+
+The published package and Rettiwt 7.1.4 still declare `engines.node: "^22.21.0"`. Installing on Node 24 can therefore produce `EBADENGINE` warnings, and npm rejects the installation when `engine-strict` is enabled. Use Node 22.21.0 or a newer Node 22 release for installation within the declared supported range. Official Node 24 support remains pending a Rettiwt release that declares Node 24 compatibility and a corresponding update to this package's engine range.
 
 ## Quick start
 
@@ -332,7 +338,7 @@ Confirm the credential set, app permissions, endpoint access, and current X API 
 
 ### Node engine warning
 
-Run Node.js 22.21.0 or a newer Node 22 release. Do not use Node 23 or later with the current Rettiwt dependency.
+Run Node.js 22.21.0 or a newer Node 22 release to satisfy the package and Rettiwt engine ranges. Node 24.19.0 passed runtime testing, but installations on Node 24 can warn or fail under `engine-strict`; see [Node 24 compatibility](#node-24-compatibility).
 
 ## License
 

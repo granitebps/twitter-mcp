@@ -2,7 +2,7 @@
 
 ## Development setup
 
-Use Node.js 22.21.0 or a newer Node 22 release. Rettiwt does not support Node 23 or later.
+Use Node.js 22.21.0 or a newer Node 22 release to satisfy the declared engine ranges. CI also checks Node 24; see the README's [Node 24 compatibility notes](README.md#node-24-compatibility) for verified behavior and installation limitations.
 
 ```bash
 npm ci

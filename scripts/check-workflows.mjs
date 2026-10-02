@@ -80,6 +80,19 @@ for (const [value, label] of [
   requireText(ci, value, label);
 }
 
+const node24 = section(ci, "\n  check-node24:\n", "\n  package:\n");
+for (const value of [
+  "runs-on: ubuntu-latest",
+  checkout,
+  "ref: ${{ github.sha }}",
+  setupNode,
+  'node-version: "24"',
+  "npm ci",
+  "npm run check",
+]) {
+  requireText(node24, value, "CI Node 24 check");
+}
+
 const release = read(".github/workflows/release.yml");
 for (const [value, label] of [
   ['    tags: ["v*"]', "release tag trigger"],
