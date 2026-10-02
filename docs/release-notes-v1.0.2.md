@@ -8,6 +8,8 @@ returned `INTERNAL_ERROR`.
 
 - Updated `rettiwt-api` from 7.1.3 to 7.1.4 and
   `x-client-transaction-id` from 0.3.1 to 0.3.2.
+- Updated the transitive Axios dependency from 1.19.0 to 1.20.0 to resolve the
+  high-severity production audit finding.
 - Verified post lookup, replies, profile lookup, and search through the live MCP
   server using existing credentials.
 
