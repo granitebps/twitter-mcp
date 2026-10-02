@@ -2,6 +2,11 @@
 
 All notable changes will be documented in this file.
 
+## 1.0.2 - 2026-10-02
+
+- Updated Rettiwt to 7.1.4 and its transaction ID generator to 0.3.2 to restore public X requests after an upstream homepage change.
+- Verified post lookup, replies, profile lookup, and search through the live MCP server.
+
 ## 1.0.1 - 2026-09-07
 
 - Added guarded, tag-triggered publishing using OIDC for npm and the MCP Registry, followed by GitHub Releases.
