@@ -10,8 +10,13 @@ must be explicitly documented.
 - The server runs over standard input/output (`stdio`).
 - The executable is `twitter-mcp` from the `@granitebps/twitter-mcp` npm
   package.
-- Node.js 22.21.0 or a newer Node 22 release is supported. Node 23 and later
-  are outside the current Rettiwt dependency's supported range.
+- Node.js 22.21.0 or a newer Node 22 release is the declared supported runtime.
+  The full project check and all five live MCP tool calls passed on Node 24.19.0,
+  and CI runs the full project check on Node 24. The published package and
+  Rettiwt 7.1.4 still declare `engines.node: "^22.21.0"`, so Node 24
+  installations can produce engine warnings or fail when npm's `engine-strict`
+  is enabled. Official Node 24 support remains pending updated engine
+  declarations in both packages.
 - `TWITTER_MODE` selects `rettiwt` (the default) or `api`.
 - Both providers expose the same public tool names and normalized result
   shapes. Provider-specific search syntax and upstream availability may differ.
