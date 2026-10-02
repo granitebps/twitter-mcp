@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## 1.0.3 - 2026-10-02
+
+- Corrected the runtime documentation to distinguish verified Node 24 behavior from the published Node 22 engine requirement.
+- Added a full Node 24 CI check and workflow policy validation, including release gating through reusable CI.
+- Retained the declared Node 22 engine range and documented Node 24 installation warnings and failures under npm's `engine-strict` setting.
+
 ## 1.0.2 - 2026-10-02
 
 - Updated Rettiwt to 7.1.4 and its transaction ID generator to 0.3.2 to restore public X requests after an upstream homepage change.
