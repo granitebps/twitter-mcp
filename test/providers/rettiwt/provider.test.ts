@@ -63,6 +63,41 @@ providerContract({
 });
 
 describe("RettiwtProvider", () => {
+  it("returns mapped media from details, replies, and search", async () => {
+    const fake = client();
+    const post = {
+      ...tweet("1"),
+      media: [
+        {
+          id: "media-1",
+          type: "VIDEO",
+          url: "https://example.com/video.mp4",
+          thumbnailUrl: "https://example.com/preview.jpg",
+        },
+      ],
+    };
+    fake.tweet.details.mockResolvedValue(post);
+    fake.tweet.replies.mockResolvedValue({ list: [post], next: "" });
+    fake.tweet.search.mockResolvedValue({ list: [post], next: "" });
+    const provider = new RettiwtProvider(fake);
+    const expectedMedia = [
+      {
+        id: "media-1",
+        type: "VIDEO",
+        url: "https://example.com/video.mp4",
+        thumbnail_url: "https://example.com/preview.jpg",
+      },
+    ];
+
+    const details = await provider.getTweet({ tweetId: "1" }, context());
+    const replies = await provider.getTweetReplies({ tweetId: "1", maxResults: 10 }, context());
+    const search = await provider.searchTweets({ query: "hello", maxResults: 10 }, context());
+
+    expect(details.media).toEqual(expectedMedia);
+    expect(replies.items[0]?.media).toEqual(expectedMedia);
+    expect(search.items[0]?.media).toEqual(expectedMedia);
+  });
+
   it("returns NOT_FOUND when tweet details are absent", async () => {
     const fake = client();
     fake.tweet.details.mockResolvedValue(undefined);

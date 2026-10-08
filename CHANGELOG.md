@@ -2,6 +2,12 @@
 
 All notable changes will be documented in this file.
 
+## 1.1.0 - 2026-10-08
+
+- Added optional attached media to Rettiwt post details, replies, and search results, including photo, video, and GIF URLs and optional video thumbnails.
+- Added media schema and type exports, plus mapper, provider, and MCP output test coverage.
+- Verified two photo attachments through the live MCP server on a public X post.
+
 ## 1.0.3 - 2026-10-02
 
 - Corrected the runtime documentation to distinguish verified Node 24 behavior from the published Node 22 engine requirement.

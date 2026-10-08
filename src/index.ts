@@ -3,10 +3,17 @@ export type { ApiConfig, ApiCredentials, RettiwtConfig, RuntimeConfig } from "./
 export {
   ProviderWarningSchema,
   TweetPageSchema,
+  TweetMediaSchema,
   TweetSchema,
   UserProfileSchema,
 } from "./domain/schemas.js";
-export type { ProviderWarning, Tweet, TweetPage, UserProfile } from "./domain/schemas.js";
+export type {
+  ProviderWarning,
+  Tweet,
+  TweetMedia,
+  TweetPage,
+  UserProfile,
+} from "./domain/schemas.js";
 export type {
   GetProfileRequest,
   GetRepliesRequest,
