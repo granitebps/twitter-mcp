@@ -1,4 +1,4 @@
-import type { Tweet, UserProfile } from "../../domain/schemas.js";
+import type { Tweet, TweetMedia, UserProfile } from "../../domain/schemas.js";
 
 export interface RettiwtUserLike {
   id?: string;
@@ -26,12 +26,28 @@ export interface RettiwtTweetLike {
   quoteCount?: number;
   bookmarkCount?: number;
   viewCount?: number;
+  media?: Array<{
+    id: string;
+    type: TweetMedia["type"];
+    url: string;
+    thumbnailUrl?: string;
+  }>;
 }
 
 export function mapRettiwtTweet(tweet: RettiwtTweetLike): Tweet {
   return {
     id: tweet.id,
     text: tweet.fullText,
+    ...(tweet.media
+      ? {
+          media: tweet.media.map((media) => ({
+            id: media.id,
+            type: media.type,
+            url: media.url,
+            ...(media.thumbnailUrl ? { thumbnail_url: media.thumbnailUrl } : {}),
+          })),
+        }
+      : {}),
     ...(tweet.createdAt ? { created_at: tweet.createdAt } : {}),
     author: tweet.tweetBy
       ? {

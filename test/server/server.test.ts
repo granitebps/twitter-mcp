@@ -19,6 +19,16 @@ const tweet: Tweet = {
   text: "hello",
   author: { name: "Example", username: "example", verified: false },
   metrics: { likes: 1, retweets: 2, replies: 3, quotes: 4, bookmarks: 5, views: 6 },
+  media: [
+    { id: "photo-1", type: "PHOTO", url: "https://example.com/photo.jpg" },
+    {
+      id: "video-1",
+      type: "VIDEO",
+      url: "https://example.com/video.mp4",
+      thumbnail_url: "https://example.com/preview.jpg",
+    },
+    { id: "gif-1", type: "GIF", url: "https://example.com/animation.mp4" },
+  ],
 };
 
 const page: TweetPage = { items: [tweet], nextCursor: "next" };

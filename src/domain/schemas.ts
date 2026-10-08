@@ -16,12 +16,20 @@ export const TweetAuthorSchema = z.object({
   blue_verified: z.boolean().optional(),
 });
 
+export const TweetMediaSchema = z.object({
+  id: z.string(),
+  type: z.enum(["PHOTO", "VIDEO", "GIF"]),
+  url: z.string(),
+  thumbnail_url: z.string().optional(),
+});
+
 export const TweetSchema = z.object({
   id: z.string(),
   text: z.string(),
   created_at: z.string().optional(),
   author: TweetAuthorSchema.nullable().optional(),
   metrics: TweetMetricsSchema,
+  media: z.array(TweetMediaSchema).optional(),
 });
 
 export const ProfileMetricsSchema = z.object({
@@ -59,6 +67,7 @@ export const TweetPageSchema = z.object({
 });
 
 export type Tweet = z.infer<typeof TweetSchema>;
+export type TweetMedia = z.infer<typeof TweetMediaSchema>;
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 export type ProviderWarning = z.infer<typeof ProviderWarningSchema>;
 export type TweetPage = z.infer<typeof TweetPageSchema>;

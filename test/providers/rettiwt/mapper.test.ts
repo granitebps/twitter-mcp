@@ -1,8 +1,44 @@
 import { describe, expect, it } from "vitest";
 
+import { TweetSchema } from "../../../src/domain/schemas.js";
 import { mapRettiwtTweet, mapRettiwtUser } from "../../../src/providers/rettiwt/mapper.js";
 
 describe("Rettiwt mappers", () => {
+  it("preserves photos, videos, and GIFs in order and normalizes video thumbnails", () => {
+    const result = mapRettiwtTweet({
+      id: "123",
+      fullText: "media post",
+      media: [
+        { id: "photo", type: "PHOTO", url: "https://example.com/photo.jpg" },
+        {
+          id: "video",
+          type: "VIDEO",
+          url: "https://example.com/video.mp4",
+          thumbnailUrl: "https://example.com/preview.jpg",
+        },
+        { id: "gif", type: "GIF", url: "https://example.com/animation.mp4" },
+      ],
+    });
+
+    expect(result.media).toEqual([
+      { id: "photo", type: "PHOTO", url: "https://example.com/photo.jpg" },
+      {
+        id: "video",
+        type: "VIDEO",
+        url: "https://example.com/video.mp4",
+        thumbnail_url: "https://example.com/preview.jpg",
+      },
+      { id: "gif", type: "GIF", url: "https://example.com/animation.mp4" },
+    ]);
+    expect(TweetSchema.parse(result)).toEqual(result);
+  });
+
+  it("preserves an empty media array", () => {
+    const result = mapRettiwtTweet({ id: "123", fullText: "hello", media: [] });
+
+    expect(TweetSchema.parse(result).media).toEqual([]);
+  });
+
   it("normalizes a tweet and defaults missing metrics", () => {
     const result = mapRettiwtTweet({
       id: "123",

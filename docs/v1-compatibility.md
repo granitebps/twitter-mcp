@@ -47,6 +47,11 @@ A tweet has:
   optional `verified` and `blue_verified` flags;
 - required non-negative integer metrics: `likes`, `retweets`, `replies`,
   `quotes`, and `bookmarks`; `views` is optional.
+- optional `media` array, currently populated only in Rettiwt mode when supplied
+  by the provider. Each item has string `id` and `url`, a `type` of `PHOTO`,
+  `VIDEO`, or `GIF`, and optional string `thumbnail_url`. URLs reference media
+  files; the server does not download them. An absent array means media was not
+  supplied; an empty array means the provider supplied no media items.
 
 A profile has required string `id`, `name`, and `username`, a required boolean
 `verified`, and required non-negative integer metrics for `followers_count`,

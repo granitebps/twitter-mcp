@@ -243,6 +243,13 @@ The server rejects an incomplete OAuth configuration at startup. It reads creden
 
 `max_results` defaults to 10 and accepts 1 through 100. Successful calls return structured MCP content plus JSON text for older clients. Collection tools return the items as JSON text and put cursors and warnings in structured content.
 
+In Rettiwt mode, posts returned by `get_tweet`, `get_tweet_replies`, and
+`search_tweets` also include an optional `media` array when the provider supplies
+it. Each item contains `id`, `type` (`PHOTO`, `VIDEO`, or `GIF`), a direct `url`,
+and an optional `thumbnail_url` for video previews. The server returns media
+links; it does not download the files. Official API mode does not currently
+return attached media.
+
 The [v1 compatibility contract](https://github.com/granitebps/twitter-mcp/blob/main/docs/v1-compatibility.md)
 records the stable tool, input, output, and error behavior for the 1.x release
 line.
